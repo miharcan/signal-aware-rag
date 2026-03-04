@@ -11,4 +11,8 @@ BENCHMARK_QUERIES = [
         "query": "List companies with positive growth in Technology.",
         "expected_direction": "positive"
     },
+    {
+        "query": "Which companies were impacted by supply chain disruption?",
+        "expected_direction": None
+    },
 ]

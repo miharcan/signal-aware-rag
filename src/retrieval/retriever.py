@@ -29,7 +29,7 @@ class Retriever:
 
     def retrieve(self, query, top_k=5):
         query_emb = self.embedder.embed([query]).astype("float32")
-        indices, _ = self.index.search(query_emb, top_k * 10)
+        distances, indices = self.index.search(query_emb, top_k)
 
         seen = set()
         results = []
@@ -71,7 +71,7 @@ class Retriever:
 
         # Step 4: search inside filtered space
         k = min(top_k, len(filtered_docs))
-        indices, _ = temp_index.search(query_emb, k)
+        distances, indices = temp_index.search(query_emb, k)
 
         return [filtered_docs[int(i)] for i in indices[0]]
 
@@ -98,7 +98,10 @@ class Retriever:
         temp_index.add(embeddings)
 
         # Step 4: search
-        indices, _ = temp_index.search(query_emb, min(top_k * 5, len(filtered_docs)))
+        distances, indices = temp_index.search(
+            query_emb,
+            min(top_k * 5, len(filtered_docs))
+        )
 
         # Step 5: group by company
         best_by_company = {}
