@@ -1,0 +1,14 @@
+[project]
+name = "signal-aware-rag"
+version = "0.1.0"
+description = "Modular RAG architecture for structured intelligence use cases"
+requires-python = ">=3.9"
+
+dependencies = [
+    "sentence-transformers",
+    "faiss-cpu",
+    "numpy",
+    "pandas",
+    "pyyaml",
+    "openai"
+]
