@@ -12,6 +12,14 @@ COMPANIES = [
     "Epsilon Stores",
 ]
 
+EVENT_TYPES = [
+    "supply_chain_disruption",
+    "demand_shock",
+    "pricing_change",
+    "guidance_revision",
+    "regulatory_event",
+]
+
 def generate_synthetic_dataset(output_path: str, n_docs: int = 50):
     data = []
     random.seed(42)
@@ -39,12 +47,26 @@ def generate_synthetic_dataset(output_path: str, n_docs: int = 50):
             sector=sector
         )
 
+        event_type = random.choice(EVENT_TYPES)
+
+        headline_templates = {
+            "supply_chain_disruption": "Supply chain disruption impacts {company}",
+            "demand_shock": "Unexpected demand shock affects {company}",
+            "pricing_change": "{company} announces major pricing change",
+            "guidance_revision": "{company} revises forward guidance",
+            "regulatory_event": "New regulatory action targets {company}",
+        }
+
+        headline = headline_templates[event_type].format(company=company)
+
         data.append({
             "id": i,
             "company": company,
             "sector": sector,
             "growth": growth,
-            "text": summary
+            "text": summary,
+            "headline": headline,
+            "event_type": event_type
         })
 
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
