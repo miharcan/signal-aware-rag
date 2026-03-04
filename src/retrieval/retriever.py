@@ -30,3 +30,14 @@ class Retriever:
         query_emb = self.embedder.embed([query]).astype("float32")
         indices, _ = self.index.search(query_emb, top_k)
         return [self.documents[int(i)] for i in indices[0]]
+    
+    def retrieve_with_filter(self, query, top_k=5, filter_fn=None):
+        query_emb = self.embedder.embed([query]).astype("float32")
+        indices, _ = self.index.search(query_emb, top_k * 10)
+
+        candidates = [self.documents[int(i)] for i in indices[0]]
+
+        if filter_fn:
+            candidates = [d for d in candidates if filter_fn(d)]
+
+        return candidates[:top_k]
