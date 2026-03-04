@@ -14,11 +14,15 @@ COMPANIES = [
 
 def generate_synthetic_dataset(output_path: str, n_docs: int = 50):
     data = []
+    random.seed(42)
 
     for i in range(n_docs):
         company = random.choice(COMPANIES)
         sector = random.choice(SECTORS)
-        growth = round(random.uniform(-0.1, 0.15), 3)
+        if i % 2 == 0:
+            growth = round(random.uniform(0.01, 0.15), 3)
+        else:
+            growth = round(random.uniform(-0.15, -0.01), 3)
 
         summary = (
             f"{company} reported weekly transaction growth of "

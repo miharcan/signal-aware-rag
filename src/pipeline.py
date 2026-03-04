@@ -27,6 +27,9 @@ class RAGPipeline:
                 filter_fn=filter_fn
             )
 
+            if not docs:
+                docs = self.retriever.retrieve(query, top_k)
+
         context = "\n".join([d["text"] for d in docs])
 
         prompt = f"""
