@@ -27,6 +27,6 @@ class Retriever:
         return index
 
     def retrieve(self, query, top_k=5):
-        query_emb = self.embedder.embed([query])
+        query_emb = self.embedder.embed([query]).astype("float32")
         indices, _ = self.index.search(query_emb, top_k)
-        return [self.documents[i] for i in indices[0]]
+        return [self.documents[int(i)] for i in indices[0]]

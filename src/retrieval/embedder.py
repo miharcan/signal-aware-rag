@@ -6,4 +6,7 @@ class Embedder:
         self.model = SentenceTransformer(model_name)
 
     def embed(self, texts):
-        return np.array(self.model.encode(texts, show_progress_bar=False))
+        return np.array(
+            self.model.encode(texts, show_progress_bar=False),
+            dtype="float32"
+        )

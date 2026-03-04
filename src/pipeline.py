@@ -6,6 +6,10 @@ class RAGPipeline:
     def run(self, query: str, top_k: int = 5):
         docs = self.retriever.retrieve(query, top_k)
 
+        print("Retrieved docs:")
+        for d in docs:
+            print(d["company"], d["growth"])
+
         context = "\n".join([d["text"] for d in docs])
 
         prompt = f"""

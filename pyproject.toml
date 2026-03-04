@@ -10,5 +10,6 @@ dependencies = [
     "numpy",
     "pandas",
     "pyyaml",
+    "python-dotenv",
     "openai"
 ]

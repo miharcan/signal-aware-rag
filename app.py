@@ -3,6 +3,9 @@ from src.retrieval.retriever import Retriever
 from src.generation.openai_generator import OpenAIGenerator
 from src.pipeline import RAGPipeline
 
+from dotenv import load_dotenv
+load_dotenv()
+
 def main():
     embedder = Embedder()
     retriever = Retriever.from_jsonl(
