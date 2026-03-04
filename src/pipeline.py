@@ -1,9 +1,10 @@
 from src.signals.query_signals import extract_signals
 
 class RAGPipeline:
-    def __init__(self, retriever, generator):
+    def __init__(self, retriever, generator, graph):
         self.retriever = retriever
         self.generator = generator
+        self.graph = graph
 
     def run(
         self,

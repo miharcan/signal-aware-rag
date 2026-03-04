@@ -3,6 +3,8 @@ from src.retrieval.retriever import Retriever
 from src.generation.openai_generator import OpenAIGenerator
 from src.pipeline import RAGPipeline
 from src.evaluation.run_evaluation import evaluate_mode
+from src.events.extractor import extract_event
+from src.events.knowledge_graph import EventGraph
 
 
 from dotenv import load_dotenv
@@ -17,7 +19,21 @@ def main():
     )
     generator = OpenAIGenerator()
 
-    pipeline = RAGPipeline(retriever, generator)
+    graph = EventGraph()
+
+    for doc in retriever.documents:
+        headline = doc.get("headline")
+        if not headline:
+            continue
+
+        event = extract_event(headline, generator)
+        graph.add_event(event)
+
+    print("\n=== SAMPLE GRAPH EVENTS ===")
+    for e in graph.events[:5]:
+        print(e)
+
+    pipeline = RAGPipeline(retriever, generator, graph)
 
     query = "Which companies are showing positive transaction growth?"
 

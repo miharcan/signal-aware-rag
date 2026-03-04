@@ -48,41 +48,32 @@ class Retriever:
         return results
 
     def retrieve_with_filter(self, query, top_k=5, filter_fn=None):
-        # Step 1: pre-filter corpus
+        query_emb = self.embedder.embed([query]).astype("float32")
+
+        # Step 1: filter corpus first
         filtered_docs = [
             d for d in self.documents
             if not filter_fn or filter_fn(d)
         ]
 
-        # Step 2: embed only filtered docs
-        texts = [d["text"] for d in filtered_docs]
-        embeddings = self.embedder.embed(texts)
+        if not filtered_docs:
+            return []
 
-        # Step 3: build temporary FAISS index
+        # Step 2: embed filtered docs
+        texts = [d["text"] for d in filtered_docs]
+        embeddings = self.embedder.embed(texts).astype("float32")
+
+        # Step 3: build temporary index
+        import faiss
         dim = embeddings.shape[1]
         temp_index = faiss.IndexFlatL2(dim)
         temp_index.add(embeddings)
 
-        query_emb = self.embedder.embed([query]).astype("float32")
-        indices, _ = temp_index.search(query_emb, top_k)
+        # Step 4: search inside filtered space
+        k = min(top_k, len(filtered_docs))
+        indices, _ = temp_index.search(query_emb, k)
 
-        unique_companies = set()
-        results = []
-
-        for i in indices[0]:
-            doc = filtered_docs[int(i)]
-            company = doc["company"]
-
-            if company in unique_companies:
-                continue
-
-            unique_companies.add(company)
-            results.append(doc)
-
-            if len(results) == top_k:
-                break
-
-        return results
+        return [filtered_docs[int(i)] for i in indices[0]]
 
     def retrieve_entity_aware(self, query, top_k=5, filter_fn=None):
         query_emb = self.embedder.embed([query]).astype("float32")
