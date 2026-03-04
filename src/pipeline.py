@@ -1,6 +1,5 @@
 from src.signals.query_signals import extract_signals
 
-
 class RAGPipeline:
     def __init__(self, retriever, generator):
         self.retriever = retriever
