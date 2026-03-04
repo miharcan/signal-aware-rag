@@ -5,7 +5,8 @@ from src.pipeline import RAGPipeline
 from src.evaluation.run_evaluation import evaluate_mode
 from src.events.extractor import extract_event
 from src.events.knowledge_graph import EventGraph
-
+from src.evaluation.llm_judge import judge_answer
+import json
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -143,6 +144,36 @@ def main():
     for group in [baseline_results, signal_doc_results, signal_entity_results, signal_entity_graph_results]:
         for r in group:
             print(r)
+
+    def summarize(results, label):
+        valid_consistency = [r["consistency"] for r in results if r["consistency"] is not None]
+        valid_event = [r["event_precision"] for r in results if r["event_precision"] is not None]
+
+        print(f"\n=== SUMMARY: {label} ===")
+
+        if valid_consistency:
+            print("avg_consistency:", round(sum(valid_consistency)/len(valid_consistency), 3))
+
+        if valid_event:
+            print("avg_event_precision:", round(sum(valid_event)/len(valid_event), 3))
+
+    summarize(baseline_results, "BASELINE")
+    summarize(signal_doc_results, "SIGNAL_DOC")
+    summarize(signal_entity_results, "SIGNAL_ENTITY")
+    summarize(signal_entity_graph_results, "SIGNAL_ENTITY_GRAPH")
+
+    judge_result = judge_answer(
+        generator,
+        signal_entity_graph["query"],
+        signal_entity_graph["answer"]
+    )
+
+    print("\n=== LLM JUDGE ===")
+    try:
+        judge_json = json.loads(judge_result)
+        print(judge_json)
+    except json.JSONDecodeError:
+        print(judge_result)
 
 
 if __name__ == "__main__":

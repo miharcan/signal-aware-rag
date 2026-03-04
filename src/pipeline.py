@@ -1,5 +1,6 @@
 from src.signals.query_signals import extract_signals
 from src.events.query_event import extract_event_from_query
+from src.agents.agents import AnalystAgent, ContextAgent, WriterAgent
 
 class RAGPipeline:
     def __init__(self, retriever, generator, graph):
@@ -70,33 +71,21 @@ class RAGPipeline:
         else:
             docs = self.retriever.retrieve(query, top_k)
 
-        # --- GENERATION ---
-        context = "\n".join([d["text"] for d in docs])
+        # --- MULTI-AGENT REASONING ---
 
-        print(
-            f"=== MODE: "
-            f"signal_aware={signal_aware}, "
-            f"entity_aware={entity_aware}, "
-            f"graph_aware={graph_aware} ==="
-        )
+        analyst = AnalystAgent()
+        context_agent = ContextAgent()
+        writer = WriterAgent(self.generator)
 
-        for d in docs:
-            print(d["company"], d["growth"])
+        analysis = analyst.analyze(docs)
+        context_info = context_agent.summarize_context(docs)
 
-        prompt = f"""
-        Use the context below to answer the question.
-
-        Context:
-        {context}
-
-        Question:
-        {query}
-        """
-
-        answer = self.generator.generate(prompt)
+        answer = writer.write(query, analysis, context_info)
 
         return {
             "query": query,
             "answer": answer,
             "documents": docs,
+            "analysis": analysis,
+            "context": context_info,
         }
