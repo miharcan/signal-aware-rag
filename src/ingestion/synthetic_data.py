@@ -24,10 +24,19 @@ def generate_synthetic_dataset(output_path: str, n_docs: int = 50):
         else:
             growth = round(random.uniform(-0.15, -0.01), 3)
 
-        summary = (
-            f"{company} reported weekly transaction growth of "
-            f"{growth*100:.1f}% in the {sector} sector. "
-            f"Consumer demand trends remain volatile."
+        templates = [
+            "{company} saw transaction growth of {growth}% this week in {sector}.",
+            "Weekly spend trends for {company} shifted by {growth}% within the {sector} sector.",
+            "{company} reported a {growth}% change in consumer transactions across {sector}.",
+            "In {sector}, {company} experienced {growth}% week-over-week transaction movement."
+        ]
+
+        template = random.choice(templates)
+
+        summary = template.format(
+            company=company,
+            growth=round(growth * 100, 1),
+            sector=sector
         )
 
         data.append({

@@ -20,14 +20,32 @@ def main():
     query = "Which companies are showing positive transaction growth?"
 
     baseline = pipeline.run(query, signal_aware=False)
-    signal = pipeline.run(query, signal_aware=True)
+
+    signal_doc = pipeline.run(
+        query,
+        signal_aware=True,
+        entity_aware=True
+    )
+
+    signal_entity = pipeline.run(
+        query,
+        signal_aware=True,
+        entity_aware=True
+    )
+
+    print(signal_entity["documents"])
+    print(signal_entity["answer"]) 
 
     print("\n=== BASELINE ===")
     for d in baseline["documents"]:
         print(d["company"], d["growth"])
 
-    print("\n=== SIGNAL AWARE ===")
-    for d in signal["documents"]:
+    print("\n=== SIGNAL DOC LEVEL ===")
+    for d in signal_doc["documents"]:
+        print(d["company"], d["growth"])
+
+    print("\n=== SIGNAL ENTITY LEVEL ===")
+    for d in signal_entity["documents"]:
         print(d["company"], d["growth"])
 
     result = pipeline.run(query)

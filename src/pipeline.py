@@ -6,9 +6,16 @@ class RAGPipeline:
         self.retriever = retriever
         self.generator = generator
 
-    def run(self, query: str, top_k: int = 5, signal_aware: bool = False):
+    def run(
+        self,
+        query: str,
+        top_k: int = 5,
+        signal_aware: bool = False,
+        entity_aware: bool = False
+    ):
         if not signal_aware:
             docs = self.retriever.retrieve(query, top_k)
+
         else:
             signals = extract_signals(query)
 
@@ -21,16 +28,27 @@ class RAGPipeline:
                     return False
                 return True
 
-            docs = self.retriever.retrieve_with_filter(
-                query,
-                top_k=top_k,
-                filter_fn=filter_fn
-            )
+            if entity_aware:
+                docs = self.retriever.retrieve_entity_aware(
+                    query,
+                    top_k=top_k,
+                    filter_fn=filter_fn
+                )
+            else:
+                docs = self.retriever.retrieve_with_filter(
+                    query,
+                    top_k=top_k,
+                    filter_fn=filter_fn
+                )
 
             if not docs:
                 docs = self.retriever.retrieve(query, top_k)
 
         context = "\n".join([d["text"] for d in docs])
+
+        print(f"\n=== MODE: signal_aware={signal_aware}, entity_aware={entity_aware} ===")
+        for d in docs:
+            print(d["company"], d["growth"])
 
         prompt = f"""
         Use the context below to answer the question.
