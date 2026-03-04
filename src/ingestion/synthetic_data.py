@@ -1,80 +1,55 @@
-import json
 import random
-from pathlib import Path
+import json
+import os
 
-SECTORS = ["Consumer Discretionary", "Technology", "Healthcare"]
+EVENT_MAP = {
+    "Alpha Retail": "demand_shock",
+    "Beta Apparel": "regulatory_event",
+    "Gamma Tech": "pricing_change",
+    "Delta Health": "supply_chain_disruption",
+    "Epsilon Stores": "guidance_revision",
+}
 
-COMPANIES = [
-    "Alpha Retail",
-    "Beta Apparel",
-    "Gamma Tech",
-    "Delta Health",
-    "Epsilon Stores",
+SECTORS = [
+    "Consumer Discretionary",
+    "Healthcare",
+    "Technology"
 ]
 
-EVENT_TYPES = [
-    "supply_chain_disruption",
-    "demand_shock",
-    "pricing_change",
-    "guidance_revision",
-    "regulatory_event",
-]
+companies = list(EVENT_MAP.keys())
 
-def generate_synthetic_dataset(output_path: str, n_docs: int = 50):
-    data = []
-    random.seed(42)
+documents = []
 
-    for i in range(n_docs):
-        company = random.choice(COMPANIES)
-        sector = random.choice(SECTORS)
-        if i % 2 == 0:
-            growth = round(random.uniform(0.01, 0.15), 3)
-        else:
-            growth = round(random.uniform(-0.15, -0.01), 3)
+for i, company in enumerate(companies):
 
-        templates = [
-            "{company} saw transaction growth of {growth}% this week in {sector}.",
-            "Weekly spend trends for {company} shifted by {growth}% within the {sector} sector.",
-            "{company} reported a {growth}% change in consumer transactions across {sector}.",
-            "In {sector}, {company} experienced {growth}% week-over-week transaction movement."
-        ]
+    sector = random.choice(SECTORS)
+    growth = round(random.uniform(-0.15, 0.15), 3)
 
-        template = random.choice(templates)
+    event_type = EVENT_MAP[company]
+    event_readable = event_type.replace("_", " ")
 
-        summary = template.format(
-            company=company,
-            growth=round(growth * 100, 1),
-            sector=sector
-        )
+    headline = f"{event_readable} affects {company}"
+    summary = f"Weekly spend trends for {company} shifted by {growth*100:.1f}% within the {sector} sector."
 
-        event_type = random.choice(EVENT_TYPES)
+    text = f"{headline}. {summary}"
 
-        headline_templates = {
-            "supply_chain_disruption": "Supply chain disruption impacts {company}",
-            "demand_shock": "Unexpected demand shock affects {company}",
-            "pricing_change": "{company} announces major pricing change",
-            "guidance_revision": "{company} revises forward guidance",
-            "regulatory_event": "New regulatory action targets {company}",
-        }
+    documents.append({
+        "id": i,
+        "company": company,
+        "sector": sector,
+        "growth": growth,
+        "headline": headline,
+        "event_type": event_type,
+        "text": text
+    })
 
-        headline = headline_templates[event_type].format(company=company)
+output_path = "data/synthetic/documents.jsonl"
 
-        data.append({
-            "id": i,
-            "company": company,
-            "sector": sector,
-            "growth": growth,
-            "text": summary,
-            "headline": headline,
-            "event_type": event_type
-        })
+# Ensure directory exists
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+with open(output_path, "w") as f:
+    for doc in documents:
+        f.write(json.dumps(doc) + "\n")
 
-    with open(output_path, "w") as f:
-        for row in data:
-            f.write(json.dumps(row) + "\n")
-
-
-if __name__ == "__main__":
-    generate_synthetic_dataset("data/synthetic/documents.jsonl")
+print(f"Saved {len(documents)} documents to {output_path}")

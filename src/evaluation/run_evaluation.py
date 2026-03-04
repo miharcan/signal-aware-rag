@@ -6,7 +6,7 @@ from src.evaluation.metrics import (
 from src.evaluation.benchmark import BENCHMARK_QUERIES
 
 
-def evaluate_mode(pipeline, mode_name, signal_aware, entity_aware):
+def evaluate_mode(pipeline, mode_name, signal_aware, entity_aware, graph_aware=False):
     results = []
 
     for item in BENCHMARK_QUERIES:
@@ -16,7 +16,8 @@ def evaluate_mode(pipeline, mode_name, signal_aware, entity_aware):
         output = pipeline.run(
             query,
             signal_aware=signal_aware,
-            entity_aware=entity_aware
+            entity_aware=entity_aware,
+            graph_aware=graph_aware
         )
 
         docs = output["documents"]

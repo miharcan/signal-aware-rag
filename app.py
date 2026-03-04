@@ -37,22 +37,33 @@ def main():
 
     query = "Which companies are showing positive transaction growth?"
 
-    baseline = pipeline.run(query, signal_aware=False)
+    baseline = pipeline.run(
+        query,
+        signal_aware=False,
+        entity_aware=False,
+        graph_aware=False
+    )
 
     signal_doc = pipeline.run(
         query,
         signal_aware=True,
-        entity_aware=True
+        entity_aware=False,
+        graph_aware=False
     )
 
     signal_entity = pipeline.run(
         query,
         signal_aware=True,
-        entity_aware=True
+        entity_aware=True,
+        graph_aware=False
     )
 
-    print(signal_entity["documents"])
-    print(signal_entity["answer"]) 
+    signal_entity_graph = pipeline.run(
+        query,
+        signal_aware=True,
+        entity_aware=True,
+        graph_aware=True
+    )
 
     print("\n=== BASELINE ===")
     for d in baseline["documents"]:
@@ -66,9 +77,34 @@ def main():
     for d in signal_entity["documents"]:
         print(d["company"], d["growth"])
 
-    result = pipeline.run(query)
+    print("\n=== SIGNAL ENTITY + GRAPH ===")
+    for d in signal_entity_graph["documents"]:
+        print(d["company"], d["growth"])
 
-    print(result["answer"])
+    print("\n######## EVENT QUERY ########")
+    event_query = "Which companies were impacted by supply chain disruption?"
+
+    event_entity = pipeline.run(
+        event_query,
+        signal_aware=False,
+        entity_aware=True,
+        graph_aware=False
+    )
+
+    event_entity_graph = pipeline.run(
+        event_query,
+        signal_aware=False,
+        entity_aware=True,
+        graph_aware=True
+    )
+
+    print("\n=== EVENT ENTITY (no graph) ===")
+    for d in event_entity["documents"]:
+        print(d["company"], d["growth"])
+
+    print("\n=== EVENT ENTITY + GRAPH ===")
+    for d in event_entity_graph["documents"]:
+        print(d["company"], d["growth"])
 
     print("\n\n=== EVALUATION ===")
 
@@ -76,24 +112,35 @@ def main():
         pipeline,
         mode_name="baseline",
         signal_aware=False,
-        entity_aware=False
+        entity_aware=False,
+        graph_aware=False
     )
 
     signal_doc_results = evaluate_mode(
         pipeline,
         mode_name="signal_doc",
         signal_aware=True,
-        entity_aware=False
+        entity_aware=False,
+        graph_aware=False
     )
 
     signal_entity_results = evaluate_mode(
         pipeline,
         mode_name="signal_entity",
         signal_aware=True,
-        entity_aware=True
+        entity_aware=True,
+        graph_aware=False
     )
 
-    for group in [baseline_results, signal_doc_results, signal_entity_results]:
+    signal_entity_graph_results = evaluate_mode(
+        pipeline,
+        mode_name="signal_entity_graph",
+        signal_aware=True,
+        entity_aware=True,
+        graph_aware=True
+    )
+
+    for group in [baseline_results, signal_doc_results, signal_entity_results, signal_entity_graph_results]:
         for r in group:
             print(r)
 
