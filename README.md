@@ -64,13 +64,14 @@ structured signals and graph conditioning improve answer quality.
 
 # Retrieval Variants Evaluated
 
+```bash
   Mode                Description
   ------------------- -----------------------------------------------
   Baseline RAG        Pure semantic retrieval
   Signal-Aware        Filters documents using query signals
   Entity-Aware        Aggregates results by company
   Graph-Conditioned   Filters entities using knowledge graph events
-
+```
 ------------------------------------------------------------------------
 
 # Example Query
@@ -87,16 +88,18 @@ Graph-conditioned retrieval isolates the correct entity:
 
 # Experimental Results
 
+```bash
   Mode             Avg Consistency   Event Precision
   ---------------- ----------------- -----------------
   Baseline         0.53              0.20
   Signal-Aware     1.00              0.20
   Signal + Graph   1.00              1.00
+```
 
 Key insight:
 
-> Knowledge graph conditioning dramatically improves event grounding
-> without degrading numerical reasoning.
+Knowledge graph conditioning dramatically improves event grounding
+without degrading numerical reasoning.
 
 ------------------------------------------------------------------------
 
@@ -139,10 +142,14 @@ The model evaluates answers for:
 
 Example output:
 
-    {'faithfulness': 1.0,
-     'event_alignment': 1.0,
-     'business_quality': 1.0}
-
+```bash
+==============================
+LLM JUDGE
+==============================
+faithfulness       1.0
+event_alignment    1.0
+business_quality   1.0
+```
 ------------------------------------------------------------------------
 
 # Running the System
