@@ -2,6 +2,7 @@ from src.signals.query_signals import extract_signals
 from src.events.query_event import extract_event_from_query
 from src.agents.agents import AnalystAgent, ContextAgent, WriterAgent
 
+
 class RAGPipeline:
     def __init__(self, retriever, generator, graph):
         self.retriever = retriever
@@ -30,7 +31,6 @@ class RAGPipeline:
             if query_event:
                 affected = self.graph.query_by_event_type(query_event)
                 affected_companies = {e["company"] for e in affected}
-                print("COMPANIES:", affected_companies)
 
         # --- FINAL FILTER ---
         def active_filter(doc):

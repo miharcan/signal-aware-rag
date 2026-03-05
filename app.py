@@ -6,6 +6,7 @@ from src.evaluation.run_evaluation import evaluate_mode
 from src.events.extractor import extract_event
 from src.events.knowledge_graph import EventGraph
 from src.evaluation.llm_judge import judge_answer
+from src.utils.print_utils import print_docs, print_section, print_subsection
 import json
 
 from dotenv import load_dotenv
@@ -30,9 +31,9 @@ def main():
         event = extract_event(headline, generator)
         graph.add_event(event)
 
-    print("\n=== SAMPLE GRAPH EVENTS ===")
+    print_section("GRAPH EVENTS")
     for e in graph.events[:5]:
-        print(e)
+        print(f"{e['company']:<15} → {e['event_type']}")
 
     pipeline = RAGPipeline(retriever, generator, graph)
 
@@ -44,14 +45,7 @@ def main():
         entity_aware=False,
         graph_aware=False
     )
-
-    signal_doc = pipeline.run(
-        query,
-        signal_aware=True,
-        entity_aware=False,
-        graph_aware=False
-    )
-
+    
     signal_entity = pipeline.run(
         query,
         signal_aware=True,
@@ -66,23 +60,17 @@ def main():
         graph_aware=True
     )
 
-    print("\n=== BASELINE ===")
-    for d in baseline["documents"]:
-        print(d["company"], d["growth"])
+    print_section("RETRIEVAL COMPARISON")
+    print_subsection("Baseline")
+    print_docs(baseline["documents"])
 
-    print("\n=== SIGNAL DOC LEVEL ===")
-    for d in signal_doc["documents"]:
-        print(d["company"], d["growth"])
+    print_subsection("Signal + Entity")
+    print_docs(signal_entity["documents"])
 
-    print("\n=== SIGNAL ENTITY LEVEL ===")
-    for d in signal_entity["documents"]:
-        print(d["company"], d["growth"])
-
-    print("\n=== SIGNAL ENTITY + GRAPH ===")
-    for d in signal_entity_graph["documents"]:
-        print(d["company"], d["growth"])
-
-    print("\n######## EVENT QUERY ########")
+    print_subsection("Signal + Entity + Graph")
+    print_docs(signal_entity_graph["documents"])
+ 
+    print_section("EVENT QUERY")
     event_query = "Which companies were impacted by supply chain disruption?"
 
     event_entity = pipeline.run(
@@ -99,15 +87,16 @@ def main():
         graph_aware=True
     )
 
-    print("\n=== EVENT ENTITY (no graph) ===")
+    print("Query: supply chain disruption")
+    print("\nWithout graph")
     for d in event_entity["documents"]:
-        print(d["company"], d["growth"])
+        print(d["company"])
 
-    print("\n=== EVENT ENTITY + GRAPH ===")
+    print("\nWith graph")
     for d in event_entity_graph["documents"]:
-        print(d["company"], d["growth"])
+        print(d["company"])
 
-    print("\n\n=== EVALUATION ===")
+    print_section("EVALUATION DETAILS")
 
     baseline_results = evaluate_mode(
         pipeline,
@@ -143,24 +132,30 @@ def main():
 
     for group in [baseline_results, signal_doc_results, signal_entity_results, signal_entity_graph_results]:
         for r in group:
-            print(r)
+            print(
+                f"{r['mode']:20} | "
+                f"{r['query'][:35]:35} | "
+                f"consistency={r['consistency']} | "
+                f"event_precision={r['event_precision']}"
+            )
 
+    print_section("EVALUATION SUMMARY")
+    
     def summarize(results, label):
         valid_consistency = [r["consistency"] for r in results if r["consistency"] is not None]
         valid_event = [r["event_precision"] for r in results if r["event_precision"] is not None]
 
-        print(f"\n=== SUMMARY: {label} ===")
+        print("\n" + label)
 
         if valid_consistency:
-            print("avg_consistency:", round(sum(valid_consistency)/len(valid_consistency), 3))
+            print("  consistency:      ", round(sum(valid_consistency)/len(valid_consistency),3))
 
         if valid_event:
-            print("avg_event_precision:", round(sum(valid_event)/len(valid_event), 3))
+            print("  event precision:  ", round(sum(valid_event)/len(valid_event),3))
 
-    summarize(baseline_results, "BASELINE")
-    summarize(signal_doc_results, "SIGNAL_DOC")
-    summarize(signal_entity_results, "SIGNAL_ENTITY")
-    summarize(signal_entity_graph_results, "SIGNAL_ENTITY_GRAPH")
+    summarize(baseline_results, "Baseline")
+    summarize(signal_doc_results, "Signal")
+    summarize(signal_entity_graph_results, "Signal + Graph")
 
     judge_result = judge_answer(
         generator,
@@ -168,12 +163,17 @@ def main():
         signal_entity_graph["answer"]
     )
 
-    print("\n=== LLM JUDGE ===")
-    try:
-        judge_json = json.loads(judge_result)
-        print(judge_json)
-    except json.JSONDecodeError:
-        print(judge_result)
+    print_section("LLM JUDGE")
+
+    if isinstance(judge_result, str):
+        try:
+            judge_result = json.loads(judge_result)
+        except json.JSONDecodeError:
+            print(judge_result)
+            return
+
+    for k, v in judge_result.items():
+        print(f"{k:<18} {v}")
 
 
 if __name__ == "__main__":
